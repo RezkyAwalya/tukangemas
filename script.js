@@ -237,22 +237,27 @@ function formatRupiah(number) {
 function validateForm() {
 
     let name =
-        document.getElementById("customerName").value.trim();
+        document.getElementById("customerName")
+            .value.trim();
 
     let type =
-        document.getElementById("jewelryType").value;
+        document.getElementById("jewelryType")
+            .value;
 
     let size =
-        document.getElementById("size").value;
+        document.getElementById("size")
+            .value;
 
     let weight =
         parseFloat(
-            document.getElementById("weight").value
+            document.getElementById("weight")
+                .value
         );
 
     let goldPrice =
         parseFloat(
-            document.getElementById("goldPrice").value
+            document.getElementById("goldPrice")
+                .value
         );
 
     let purity =
@@ -355,14 +360,14 @@ function validateForm() {
 
 
 /* =========================================
-KIRIM PESAN WHATSAPP
+   KIRIM PESAN WHATSAPP
 ========================================= */
 
 function sendToWhatsApp() {
 
     /*
-    GANTI NOMOR INI DENGAN NOMOR WHATSAPP AYAH
-    Contoh:
+    NOMOR WHATSAPP AYAH
+    Format:
     6281234567890
     */
 
@@ -382,10 +387,15 @@ function sendToWhatsApp() {
         document.getElementById("size")
             .value;
 
-    let purity =
+    let purityElement =
         document.querySelector(
             'input[name="purity"]:checked'
-        ).value;
+        );
+
+    let purity =
+        purityElement
+            ? purityElement.value
+            : "-";
 
     let weight =
         document.getElementById("weight")
@@ -410,9 +420,19 @@ function sendToWhatsApp() {
             .value.trim();
 
 
+    /* =====================================
+       HITUNG TOTAL
+       Tetap menggunakan rumus sebelumnya:
+       Berat × Harga Emas
+    ===================================== */
+
     let total =
         parseFloat(weight) * goldPrice;
 
+
+    /* =====================================
+       DATA KOSONG
+    ===================================== */
 
     if (design === "") {
         design = "-";
@@ -427,41 +447,56 @@ function sendToWhatsApp() {
     }
 
 
+    /* =====================================
+       PESAN WHATSAPP
+    ===================================== */
+
     let message =
-        "Halo TUKANG EMAS REZKY,%0A%0A" +
+        "Halo TUKANG EMAS REZKY,\n\n" +
 
-        "Saya ingin melakukan pemesanan/custom perhiasan.%0A%0A" +
+        "Saya ingin melakukan pemesanan/custom perhiasan.\n\n" +
 
-        "*DATA PELANGGAN*%0A" +
-        "Nama: " + name + "%0A%0A" +
+        "*DATA PELANGGAN*\n" +
+        "Nama: " + name + "\n\n" +
 
-        "*DETAIL PERHIASAN*%0A" +
-        "Jenis: " + type + "%0A" +
-        "Ukuran: " + size + "%0A" +
-        "Kadar emas: " + purity + "%0A" +
-        "Perkiraan berat: " + weight + " gram%0A" +
-        "Desain/keinginan: " + design + "%0A" +
-        "Ukiran/tulisan: " + engraving + "%0A" +
-        "Catatan: " + notes + "%0A%0A" +
+        "*DETAIL PERHIASAN*\n" +
+        "Jenis: " + type + "\n" +
+        "Ukuran: " + size + "\n" +
+        "Kadar emas: " + purity + "\n" +
+        "Perkiraan berat: " + weight + " gram\n" +
+        "Desain/keinginan: " + design + "\n" +
+        "Ukiran/tulisan: " + engraving + "\n" +
+        "Catatan: " + notes + "\n\n" +
 
-        "*ESTIMASI HARGA*%0A" +
+        "*ESTIMASI HARGA*\n" +
         "Harga emas/gram: " +
-        formatRupiah(goldPrice) + "%0A" +
+        formatRupiah(goldPrice) + "\n" +
 
         "Estimasi: " +
-        formatRupiah(total) + "%0A%0A" +
+        formatRupiah(total) + "\n\n" +
 
-        "Mohon dikonfirmasi kembali untuk harga akhir.%0A" +
+        "Mohon dikonfirmasi kembali untuk harga akhir.\n" +
 
         "Terima kasih.";
 
+
+    /* =====================================
+       URL WHATSAPP
+       encodeURIComponent() digunakan agar
+       karakter seperti &, +, /, ?, #, dll.
+       tetap terkirim dengan benar.
+    ===================================== */
 
     let whatsappURL =
         "https://wa.me/" +
         phoneNumber +
         "?text=" +
-        message;
+        encodeURIComponent(message);
 
+
+    /* =====================================
+       BUKA WHATSAPP
+    ===================================== */
 
     window.open(
         whatsappURL,
