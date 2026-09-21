@@ -355,19 +355,19 @@ function validateForm() {
 
 
 /* =========================================
-   KIRIM PESAN WHATSAPP
+KIRIM PESAN WHATSAPP
 ========================================= */
 
 function sendToWhatsApp() {
 
     /*
-       GANTI NOMOR INI DENGAN NOMOR WHATSAPP AYAH
-       Contoh:
-       6281234567890
+    GANTI NOMOR INI DENGAN NOMOR WHATSAPP AYAH
+    Contoh:
+    6281234567890
     */
 
     const phoneNumber =
-        "628xxxxxxxxxx";
+        "6285343626789";
 
 
     let name =
