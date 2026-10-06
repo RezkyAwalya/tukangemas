@@ -124,23 +124,23 @@ $(document).ready(function () {
        FORM CUSTOM
     ===================================== */
 
-    $("#customForm").submit(function (event) {
+    $("#customForm").submit(async function (event) {
 
-        event.preventDefault();
+    event.preventDefault();
 
-        if (validateForm()) {
+    if (validateForm()) {
 
-            let total = calculateEstimate();
+        let total = calculateEstimate();
 
-            if (total > 0) {
+        if (total > 0) {
 
-                sendToWhatsApp();
-
-            }
+            await saveOrderAndSendWhatsApp(total);
 
         }
 
-    });
+    }
+
+});
 
 
     /* =====================================
@@ -339,19 +339,17 @@ function validateForm() {
     /* Harga */
 
     if (
-        isNaN(goldPrice) ||
-        goldPrice <= 0
-    ) {
+    isNaN(goldPrice) ||
+    goldPrice <= 0
+) {
 
-        alert(
-            "Masukkan harga emas per gram."
-        );
+    alert(
+        "Harga emas belum berhasil dimuat. Silakan tunggu sebentar lalu coba lagi."
+    );
 
-        document.getElementById("goldPrice").focus();
+    return false;
 
-        return false;
-
-    }
+}
 
 
     return true;
@@ -363,16 +361,13 @@ function validateForm() {
    KIRIM PESAN WHATSAPP
 ========================================= */
 
-function sendToWhatsApp() {
+/* =========================================
+   SIMPAN PESANAN + KIRIM WHATSAPP
+========================================= */
 
-    /*
-    NOMOR WHATSAPP AYAH
-    Format:
-    6281234567890
-    */
+async function saveOrderAndSendWhatsApp(total) {
 
-    const phoneNumber =
-        "6285343626789";
+    const phoneNumber = "6285343626789";
 
 
     let name =
@@ -398,8 +393,10 @@ function sendToWhatsApp() {
             : "-";
 
     let weight =
-        document.getElementById("weight")
-            .value;
+        parseFloat(
+            document.getElementById("weight")
+                .value
+        );
 
     let goldPrice =
         parseFloat(
@@ -421,17 +418,7 @@ function sendToWhatsApp() {
 
 
     /* =====================================
-       HITUNG TOTAL
-       Tetap menggunakan rumus sebelumnya:
-       Berat × Harga Emas
-    ===================================== */
-
-    let total =
-        parseFloat(weight) * goldPrice;
-
-
-    /* =====================================
-       DATA KOSONG
+    DATA KOSONG
     ===================================== */
 
     if (design === "") {
@@ -448,59 +435,158 @@ function sendToWhatsApp() {
 
 
     /* =====================================
-       PESAN WHATSAPP
+    DATA PESANAN UNTUK DATABASE
     ===================================== */
 
-    let message =
-        "Halo TUKANG EMAS REZKY,\n\n" +
+    const orderData = {
 
-        "Saya ingin melakukan pemesanan/custom perhiasan.\n\n" +
+        nama: name,
 
-        "*DATA PELANGGAN*\n" +
-        "Nama: " + name + "\n\n" +
+        jenis_perhiasan: type,
 
-        "*DETAIL PERHIASAN*\n" +
-        "Jenis: " + type + "\n" +
-        "Ukuran: " + size + "\n" +
-        "Kadar emas: " + purity + "\n" +
-        "Perkiraan berat: " + weight + " gram\n" +
-        "Desain/keinginan: " + design + "\n" +
-        "Ukiran/tulisan: " + engraving + "\n" +
-        "Catatan: " + notes + "\n\n" +
+        ukuran: size,
 
-        "*ESTIMASI HARGA*\n" +
-        "Harga emas/gram: " +
-        formatRupiah(goldPrice) + "\n" +
+        kadar: purity,
 
-        "Estimasi: " +
-        formatRupiah(total) + "\n\n" +
+        berat: weight,
 
-        "Mohon dikonfirmasi kembali untuk harga akhir.\n" +
+        harga_emas: goldPrice,
 
-        "Terima kasih.";
+        desain: design,
+
+        ukiran: engraving,
+
+        catatan: notes,
+
+        estimasi: total
+
+    };
 
 
     /* =====================================
-       URL WHATSAPP
-       encodeURIComponent() digunakan agar
-       karakter seperti &, +, /, ?, #, dll.
-       tetap terkirim dengan benar.
+    SIMPAN KE DATABASE
     ===================================== */
 
-    let whatsappURL =
-        "https://wa.me/" +
-        phoneNumber +
-        "?text=" +
-        encodeURIComponent(message);
+    try {
 
-
-    /* =====================================
-       BUKA WHATSAPP
-    ===================================== */
-
-    window.open(
-        whatsappURL,
-        "_blank"
+    const response =
+    await fetch(
+        "proses/simpan-pesanan.php",
+        {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(orderData)
+        }
     );
 
+const responseText = await response.text();
+
+console.log("RESPONS PHP:", responseText);
+
+let result;
+
+try {
+
+    result = JSON.parse(responseText);
+
+} catch (error) {
+
+    alert(
+        "PHP tidak mengembalikan JSON.\n\n" +
+        "Respons PHP:\n" +
+        responseText
+    );
+
+    console.error(responseText);
+
+    return;
+}
+
+if (result.status !== "success") {
+
+    alert(
+        result.message ||
+        "Pesanan gagal disimpan."
+    );
+
+    return;
+}
+
+    // lanjut ke WhatsApp...
+
+
+        /* =================================
+           PESAN WHATSAPP
+        ================================= */
+
+        let message =
+            "Halo TUKANG EMAS REZKY,\n\n" +
+
+            "Saya ingin melakukan pemesanan/custom perhiasan.\n\n" +
+
+            "*DATA PELANGGAN*\n" +
+            "Nama: " + name + "\n\n" +
+
+            "*DETAIL PERHIASAN*\n" +
+            "Jenis: " + type + "\n" +
+            "Ukuran: " + size + "\n" +
+            "Kadar emas: " + purity + "\n" +
+            "Perkiraan berat: " +
+                weight + " gram\n" +
+            "Desain/keinginan: " +
+                design + "\n" +
+            "Ukiran/tulisan: " +
+                engraving + "\n" +
+            "Catatan: " +
+                notes + "\n\n" +
+
+            "*ESTIMASI HARGA*\n" +
+            "Harga emas/gram: " +
+                formatRupiah(goldPrice) + "\n" +
+
+            "Estimasi: " +
+                formatRupiah(total) + "\n\n" +
+
+            "Mohon dikonfirmasi kembali " +
+            "untuk harga akhir.\n" +
+
+            "Terima kasih.";
+
+
+        /* =================================
+           URL WHATSAPP
+        ================================= */
+
+        let whatsappURL =
+            "https://wa.me/" +
+            phoneNumber +
+            "?text=" +
+            encodeURIComponent(message);
+
+
+        /* =================================
+        BUKA WHATSAPP
+        ================================= */
+
+        window.open(
+            whatsappURL,
+            "_blank"
+        );
+
+
+    } catch (error) {
+
+        console.error(
+            "Error menyimpan pesanan:",
+            error
+        );
+
+        alert(
+            "Pesanan gagal disimpan ke database. " +
+            "Silakan coba lagi."
+        );
+
+    }
 }
