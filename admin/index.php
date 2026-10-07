@@ -448,12 +448,19 @@ $pesananTerbaru =
 
             <div class="form-buttons mt-4">
 
-                <a
-                    href="pesanan.php"
-                    class="btn-gold"
-                >
+                <a href="pesanan.php">
                     Kelola Pesanan
                 </a>
+
+                <a href="koleksi.php">
+                    Kelola Koleksi
+                </a>
+
+                <a href="galeri.php">
+                    Kelola Galeri
+                </a>
+
+                
 
             </div>
 
